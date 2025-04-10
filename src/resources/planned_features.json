@@ -1,0 +1,44 @@
+[
+    [
+        "Core Tracking & Analysis Engine",
+        "Advanced tennis ball tracking with real-time analysis",
+        "v1.0",
+        true
+    ],
+    [
+        "HMI & Visualization Suite",
+        "Enhanced user interface with advanced visualization tools",
+        "v1.5",
+        true
+    ],
+    [
+        "Temporal Event Review & Playback",
+        "Instant replay functionality with frame-by-frame analysis",
+        "v1.2",
+        false
+    ],
+    [
+        "Trajectory Analysis & Boundary Detection",
+        "Precise serve and volley trajectory analysis with in/out detection",
+        "v1.5",
+        false
+    ],
+    [
+        "Stereo Camera Calibration",
+        "Advanced stereo camera system calibration tools",
+        "v1.0",
+        true
+    ],
+    [
+        "3D Localization Accuracy Assessment",
+        "Tools for measuring and verifying static environment 3D localization accuracy",
+        "v2.0",
+        false
+    ],
+    [
+        "Real-time Event-Driven Feedback",
+        "Visual feedback system with LED indicators for real-time events",
+        "v1.2",
+        false
+    ]
+]

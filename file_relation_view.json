@@ -1,0 +1,446 @@
+{
+  "file_dependencies": {
+    "tennis_tracker/src/models/app_state.py": [
+      "tennis_tracker/src/models/singleton.py"
+    ],
+    "tennis_tracker/src/models/image_cache.py": [
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/models/singleton.py": [],
+    "tennis_tracker/src/controllers/image_manager.py": [
+      "tennis_tracker/src/models/singleton.py",
+      "tennis_tracker/src/models/image_cache.py",
+      "tennis_tracker/src/controllers/frame_manager.py",
+      "tennis_tracker/src/utils/file_utils.py",
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/controllers/frame_manager.py": [
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/utils/file_utils.py"
+    ],
+    "tennis_tracker/src/controllers/tennis_court_detection/court_detector.py": [
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/utils/logger.py": [
+      "tennis_tracker/src/models/singleton.py"
+    ],
+    "tennis_tracker/src/utils/config.py": [
+      "tennis_tracker/src/models/singleton.py",
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/utils/settings_manager.py": [
+      "tennis_tracker/src/models/singleton.py",
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/utils/file_utils.py": [
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/views/main_window.py": [
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/controllers/image_manager.py",
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/utils/settings_manager.py",
+      "tennis_tracker/src/views/tabs/monitoring_tab.py",
+      "tennis_tracker/src/views/tabs/settings_tab.py",
+      "tennis_tracker/src/views/tabs/coming_soon_tab.py",
+      "tennis_tracker/src/views/tabs/calibration/calibration_tab.py",
+      "tennis_tracker/src/views/dialogs/folder_selection_dialog.py"
+    ],
+    "tennis_tracker/src/views/app.py": [
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/utils/config.py",
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/views/tabs/monitoring_tab.py": [
+      "tennis_tracker/src/views/widgets/player_controls.py",
+      "tennis_tracker/src/views/widgets/led_display.py",
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/controllers/image_manager.py",
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/utils/settings_manager.py"
+    ],
+    "tennis_tracker/src/views/tabs/settings_tab.py": [
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/utils/settings_manager.py"
+    ],
+    "tennis_tracker/src/views/tabs/coming_soon_tab.py": [
+      "tennis_tracker/src/utils/logger.py"
+    ],
+    "tennis_tracker/src/views/tabs/calibration/calibration_tab.py": [
+      "tennis_tracker/src/controllers/image_manager.py",
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/views/tabs/calibration/point_manager.py",
+      "tennis_tracker/src/views/tabs/calibration/point_io.py",
+      "tennis_tracker/src/views/tabs/calibration/image_utils.py"
+    ],
+    "tennis_tracker/src/views/tabs/calibration/point_manager.py": [],
+    "tennis_tracker/src/views/tabs/calibration/point_io.py": [],
+    "tennis_tracker/src/views/tabs/calibration/image_utils.py": [],
+    "tennis_tracker/src/views/widgets/player_controls.py": [
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/utils/settings_manager.py"
+    ],
+    "tennis_tracker/src/views/widgets/led_display.py": [
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/utils/config.py"
+    ],
+    "tennis_tracker/src/views/dialogs/folder_selection_dialog.py": [
+      "tennis_tracker/src/models/app_state.py",
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/controllers/image_manager.py",
+      "tennis_tracker/src/utils/settings_manager.py"
+    ],
+    "tennis_tracker/src/views/dialogs/court_calibration_dialog.py": [
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/controllers/image_manager.py",
+      "tennis_tracker/src/views/dialogs/key_point_selection_dialog.py"
+    ],
+    "tennis_tracker/src/views/dialogs/camera_calibration_dialog.py": [
+      "tennis_tracker/src/utils/logger.py",
+      "tennis_tracker/src/controllers/image_manager.py"
+    ],
+    "tennis_tracker/src/views/dialogs/key_point_selection_dialog.py": [
+      "tennis_tracker/src/utils/logger.py"
+    ]
+  },
+  "class_dependencies": {
+    "AppState": {
+      "file_path": "tennis_tracker/src/models/app_state.py",
+      "dependencies": [
+        {
+          "class_name": "qt_singleton",
+          "file_path": "tennis_tracker/src/models/singleton.py"
+        }
+      ]
+    },
+    "ImageCache": {
+      "file_path": "tennis_tracker/src/models/image_cache.py",
+      "dependencies": [
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    },
+    "ImageManager": {
+      "file_path": "tennis_tracker/src/controllers/image_manager.py",
+      "dependencies": [
+        {
+          "class_name": "qt_singleton",
+          "file_path": "tennis_tracker/src/models/singleton.py"
+        },
+        {
+          "class_name": "ImageCache",
+          "file_path": "tennis_tracker/src/models/image_cache.py"
+        },
+        {
+          "class_name": "FrameManager",
+          "file_path": "tennis_tracker/src/controllers/frame_manager.py"
+        },
+        {
+          "class_name": "FileUtils",
+          "file_path": "tennis_tracker/src/utils/file_utils.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    },
+    "FrameManager": {
+      "file_path": "tennis_tracker/src/controllers/frame_manager.py",
+      "dependencies": [
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "FileUtils",
+          "file_path": "tennis_tracker/src/utils/file_utils.py"
+        }
+      ]
+    },
+    "CourtDetector": {
+      "file_path": "tennis_tracker/src/controllers/tennis_court_detection/court_detector.py",
+      "dependencies": []
+    },
+    "Logger": {
+      "file_path": "tennis_tracker/src/utils/logger.py",
+      "dependencies": [
+        {
+          "class_name": "qt_singleton",
+          "file_path": "tennis_tracker/src/models/singleton.py"
+        }
+      ]
+    },
+    "Config": {
+      "file_path": "tennis_tracker/src/utils/config.py",
+      "dependencies": [
+        {
+          "class_name": "qt_singleton",
+          "file_path": "tennis_tracker/src/models/singleton.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    },
+    "SettingsManager": {
+      "file_path": "tennis_tracker/src/utils/settings_manager.py",
+      "dependencies": [
+        {
+          "class_name": "qt_singleton",
+          "file_path": "tennis_tracker/src/models/singleton.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    },
+    "FileUtils": {
+      "file_path": "tennis_tracker/src/utils/file_utils.py",
+      "dependencies": [
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    },
+    "MainWindow": {
+      "file_path": "tennis_tracker/src/views/main_window.py",
+      "dependencies": [
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "ImageManager",
+          "file_path": "tennis_tracker/src/controllers/image_manager.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "SettingsManager",
+          "file_path": "tennis_tracker/src/utils/settings_manager.py"
+        },
+        {
+          "class_name": "MonitoringTab",
+          "file_path": "tennis_tracker/src/views/tabs/monitoring_tab.py"
+        },
+        {
+          "class_name": "SettingsTab",
+          "file_path": "tennis_tracker/src/views/tabs/settings_tab.py"
+        },
+        {
+          "class_name": "ComingSoonTab",
+          "file_path": "tennis_tracker/src/views/tabs/coming_soon_tab.py"
+        },
+        {
+          "class_name": "CalibrationTab",
+          "file_path": "tennis_tracker/src/views/tabs/calibration/calibration_tab.py"
+        },
+        {
+          "class_name": "FolderSelectionDialog",
+          "file_path": "tennis_tracker/src/views/dialogs/folder_selection_dialog.py"
+        }
+      ]
+    },
+    "TennisTrackerApp": {
+      "file_path": "tennis_tracker/src/views/app.py",
+      "dependencies": [
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "Config",
+          "file_path": "tennis_tracker/src/utils/config.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    },
+    "MonitoringTab": {
+      "file_path": "tennis_tracker/src/views/tabs/monitoring_tab.py",
+      "dependencies": [
+        {
+          "class_name": "PlayerControls",
+          "file_path": "tennis_tracker/src/views/widgets/player_controls.py"
+        },
+        {
+          "class_name": "LedDisplay",
+          "file_path": "tennis_tracker/src/views/widgets/led_display.py"
+        },
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "ImageManager",
+          "file_path": "tennis_tracker/src/controllers/image_manager.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "SettingsManager",
+          "file_path": "tennis_tracker/src/utils/settings_manager.py"
+        }
+      ]
+    },
+    "SettingsTab": {
+      "file_path": "tennis_tracker/src/views/tabs/settings_tab.py",
+      "dependencies": [
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "SettingsManager",
+          "file_path": "tennis_tracker/src/utils/settings_manager.py"
+        }
+      ]
+    },
+    "ComingSoonTab": {
+      "file_path": "tennis_tracker/src/views/tabs/coming_soon_tab.py",
+      "dependencies": [
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    },
+    "CalibrationTab": {
+      "file_path": "tennis_tracker/src/views/tabs/calibration/calibration_tab.py",
+      "dependencies": [
+        {
+          "class_name": "ImageManager",
+          "file_path": "tennis_tracker/src/controllers/image_manager.py"
+        },
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "CalibrationPointManager",
+          "file_path": "tennis_tracker/src/views/tabs/calibration/point_manager.py"
+        },
+        {
+          "class_name": "CalibrationPointIO",
+          "file_path": "tennis_tracker/src/views/tabs/calibration/point_io.py"
+        }
+      ]
+    },
+    "CalibrationPointManager": {
+      "file_path": "tennis_tracker/src/views/tabs/calibration/point_manager.py",
+      "dependencies": []
+    },
+    "CalibrationPointIO": {
+      "file_path": "tennis_tracker/src/views/tabs/calibration/point_io.py",
+      "dependencies": []
+    },
+    "PlayerControls": {
+      "file_path": "tennis_tracker/src/views/widgets/player_controls.py",
+      "dependencies": [
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "SettingsManager",
+          "file_path": "tennis_tracker/src/utils/settings_manager.py"
+        }
+      ]
+    },
+    "LedDisplay": {
+      "file_path": "tennis_tracker/src/views/widgets/led_display.py",
+      "dependencies": [
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "Config",
+          "file_path": "tennis_tracker/src/utils/config.py"
+        }
+      ]
+    },
+    "FolderSelectionDialog": {
+      "file_path": "tennis_tracker/src/views/dialogs/folder_selection_dialog.py",
+      "dependencies": [
+        {
+          "class_name": "AppState",
+          "file_path": "tennis_tracker/src/models/app_state.py"
+        },
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "ImageManager",
+          "file_path": "tennis_tracker/src/controllers/image_manager.py"
+        },
+        {
+          "class_name": "SettingsManager",
+          "file_path": "tennis_tracker/src/utils/settings_manager.py"
+        }
+      ]
+    },
+    "CourtCalibrationDialog": {
+      "file_path": "tennis_tracker/src/views/dialogs/court_calibration_dialog.py",
+      "dependencies": [
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "ImageManager",
+          "file_path": "tennis_tracker/src/controllers/image_manager.py"
+        },
+        {
+          "class_name": "KeyPointSelectionDialog",
+          "file_path": "tennis_tracker/src/views/dialogs/key_point_selection_dialog.py"
+        }
+      ]
+    },
+    "CameraCalibrationDialog": {
+      "file_path": "tennis_tracker/src/views/dialogs/camera_calibration_dialog.py",
+      "dependencies": [
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        },
+        {
+          "class_name": "ImageManager",
+          "file_path": "tennis_tracker/src/controllers/image_manager.py"
+        }
+      ]
+    },
+    "KeyPointSelectionDialog": {
+      "file_path": "tennis_tracker/src/views/dialogs/key_point_selection_dialog.py",
+      "dependencies": [
+        {
+          "class_name": "Logger",
+          "file_path": "tennis_tracker/src/utils/logger.py"
+        }
+      ]
+    }
+  }
+} 

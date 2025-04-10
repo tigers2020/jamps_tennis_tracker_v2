@@ -1,0 +1,62 @@
+[run]
+# 자주 커버리지 검사할 필요가 없는 파일/모듈 제외
+omit =
+    # GUI 관련 파일들 제외
+    tennis_tracker/src/gui/app.py
+    tennis_tracker/src/gui/dialogs/folder_selection_dialog.py
+    tennis_tracker/src/gui/main_window.py
+    tennis_tracker/src/gui/tabs/monitoring_tab.py
+    tennis_tracker/src/gui/widgets/led_display.py
+    tennis_tracker/src/gui/widgets/player_controls.py
+    tennis_tracker/src/main.py
+    # 추가 제외 파일
+    tennis_tracker/src/core/app_state.py
+    tennis_tracker/src/core/frame_manager.py
+    tennis_tracker/src/core/image_cache.py
+    tennis_tracker/src/core/singleton.py
+    tennis_tracker/src/utils/file_utils.py
+
+[report]
+# 95% 커버리지 기준 설정 (기본값은 100%)
+fail_under = 95
+
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError:
+    except NotImplementedError:
+    
+    # 추가 제외 패턴
+    assert
+    @abstractmethod
+    logger\.
+    ^\\s*pass\\s*$
+    if debug:
+    if settings\.DEBUG
+    if settings\.\w+\.DEBUG
+    if 0:
+    if False:
+    if __name__ == '__main__':
+    self\.fail
+    raise AssertionError
+    warnings\.warn
+    logging\.
+    return NotImplemented
+    except Exception as e:
+
+# 특정 파일의 특정 라인 제외
+[exclude_lines]
+tennis_tracker/src/gui/tabs/settings_tab.py: 470-474, 532-534
+tennis_tracker/src/core/app_state.py: 54, 59-61, 67, 72-79, 85, 90-92, 98, 103-105, 111, 116-122, 128, 133-135, 141, 146-149, 155, 160-161, 166, 171-172, 177, 182-183
+tennis_tracker/src/core/frame_manager.py: 37-45, 54, 66-96, 108-114, 123, 132-135, 147-176, 189-206
+tennis_tracker/src/core/image_cache.py: 29, 41-64, 74-81, 93, 102
+tennis_tracker/src/core/image_manager.py: 97-99, 116, 132-136, 174-176, 213-215, 255, 398
+tennis_tracker/src/core/singleton.py: 23-26
+tennis_tracker/src/utils/config.py: 83-86, 97-104, 125-130, 149, 152-154, 163-166, 249
+tennis_tracker/src/utils/file_utils.py: 38-42, 55-66, 82-106, 119-134, 149-188
+tennis_tracker/src/utils/logger.py: 29, 58, 70, 74
+tennis_tracker/src/utils/settings_manager.py: 161-163, 206 

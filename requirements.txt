@@ -1,0 +1,20 @@
+# Tennis Tracker Application Requirements
+# 
+# This file lists all the Python dependencies required to run the Tennis Tracker application.
+# Install these dependencies using pip:
+#   pip install -r requirements.txt
+
+# GUI Toolkit
+PySide6>=6.2.0
+
+# Image Processing
+opencv-python>=4.5.5
+Pillow>=9.0.0
+numpy>=1.22.0
+
+# Utilities
+pathlib>=1.0.1
+pyserial>=3.5
+
+# For building executable
+pyinstaller>=5.0.0 

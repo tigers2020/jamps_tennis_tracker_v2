@@ -1,0 +1,28 @@
+{
+    "ui": {
+        "theme": "fusion",
+        "language": "en",
+        "window_width": 1200,
+        "window_height": 800
+    },
+    "camera": {
+        "default_azimuth": 0.0,
+        "default_elevation": 0.0,
+        "default_distance": 10.0
+    },
+    "playback": {
+        "default_speed": 1.0,
+        "autoplay": false
+    },
+    "analysis": {
+        "detection_threshold": 0.75,
+        "in_bounds_color": "#00FF00",
+        "out_bounds_color": "#FF0000",
+        "blink_rate": 10.0
+    },
+    "paths": {
+        "data_directory": "",
+        "cache_directory": "cache",
+        "export_directory": "exports"
+    }
+}
