@@ -20,7 +20,11 @@ from src.views.tabs.coming_soon_tab import ComingSoonTab
 from src.utils.ui_theme import (
     get_application_style, get_tab_widget_style, get_button_style,
     get_label_style, get_group_box_style, get_message_box_style,
-    apply_dark_theme, get_menu_style
+    apply_dark_theme, get_menu_style, get_background_style, get_app_title_style,
+    get_scrollbar_style, create_status_bar_style
+)
+from src.constants.ui_constants import (
+    PRIMARY_COLOR, ERROR_COLOR, BG_DARK, BG_MEDIUM
 )
 # Modified to import dynamically
 # from src.views.dialogs.folder_selection_dialog import FolderSelectionDialog
@@ -745,7 +749,7 @@ class MainWindow(QMainWindow):
             self.logger.warning("Failed to load background image")
             # Apply a fallback dark color if image is not available
             palette = self.palette()
-            palette.setColor(QPalette.Window, QColor(30, 30, 30))
+            palette.setColor(QPalette.Window, BG_MEDIUM)
             self.setPalette(palette)
             self.centralWidget().setAutoFillBackground(True)
         else:
@@ -770,3 +774,21 @@ class MainWindow(QMainWindow):
         
         # End the painting session
         painter.end() 
+
+    def _setup_dark_theme(self):
+        """Set up dark theme for the application"""
+        palette = self.palette()
+        palette.setColor(QPalette.Window, BG_MEDIUM)
+        palette.setColor(QPalette.WindowText, Qt.white)
+        palette.setColor(QPalette.Base, QColor(25, 25, 25))
+        palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+        palette.setColor(QPalette.ToolTipBase, Qt.white)
+        palette.setColor(QPalette.ToolTipText, Qt.white)
+        palette.setColor(QPalette.Text, Qt.white)
+        palette.setColor(QPalette.Button, QColor(53, 53, 53))
+        palette.setColor(QPalette.ButtonText, Qt.white)
+        palette.setColor(QPalette.BrightText, Qt.red)
+        palette.setColor(QPalette.Link, QColor(42, 130, 218))
+        palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+        palette.setColor(QPalette.HighlightedText, Qt.black)
+        self.setPalette(palette) 

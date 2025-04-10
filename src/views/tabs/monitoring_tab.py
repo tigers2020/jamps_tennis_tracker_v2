@@ -32,9 +32,16 @@ from src.utils.settings_manager import SettingsManager
 from src.utils.ui_theme import (
     get_group_box_style, get_label_style, get_button_style, 
     get_combobox_style, get_separator_style, get_message_box_style,
+    get_camera_image_style
+)
+from src.constants.ui_constants import (
     PRIMARY_COLOR, SUCCESS_COLOR, ERROR_COLOR, WARNING_COLOR, 
     INFO_COLOR, BG_LIGHT, TEXT_PRIMARY, BORDER_DARK,
-    get_camera_image_style
+    STATUS_STYLE_BASE, STATUS_NOT_DETECTED, STATUS_IN, STATUS_OUT,
+    STATUS_OUT_OF_BOUNDS, STATUS_IN_SERVICE, STATUS_FAULT,
+    DEFAULT_FRAME_IMAGE_PATH, CAMERA_FRAME_WIDTH, CAMERA_FRAME_HEIGHT,
+    CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT, RESIZE_TIMER_DELAY,
+    ASPECT_RATIO_16_9, TRANSPARENT_STYLE
 )
 
 
@@ -49,15 +56,6 @@ class MonitoringTab(QWidget):
     - Playback controls for animation control
     - COM port connection for FPGA communication
     """
-    
-    # Status style constants using theme colors
-    STATUS_STYLE_BASE = f"color: {TEXT_PRIMARY.name()}; padding: 5px; border-radius: 3px; font-weight: bold;"
-    STATUS_NOT_DETECTED = f"{STATUS_STYLE_BASE} background-color: rgba(128, 128, 128, 0.3);"
-    STATUS_IN = f"{STATUS_STYLE_BASE} background-color: {SUCCESS_COLOR.name()};"
-    STATUS_OUT = f"{STATUS_STYLE_BASE} background-color: {ERROR_COLOR.name()};"
-    STATUS_OUT_OF_BOUNDS = f"{STATUS_STYLE_BASE} background-color: {WARNING_COLOR.name()};"
-    STATUS_IN_SERVICE = f"{STATUS_STYLE_BASE} background-color: {SUCCESS_COLOR.name()};"
-    STATUS_FAULT = f"{STATUS_STYLE_BASE} background-color: {ERROR_COLOR.name()};"
     
     def __init__(self, parent=None):
         super(MonitoringTab, self).__init__(parent)
@@ -133,7 +131,7 @@ class MonitoringTab(QWidget):
             
             # Create container widget for frame and image
             self.image_container = QWidget()
-            self.image_container.setMinimumSize(640, 480)  # 4:3 ratio (640x480)
+            self.image_container.setMinimumSize(CAMERA_FRAME_WIDTH, CAMERA_FRAME_HEIGHT)  # 16:9 ratio (640x360)
             self.image_container.setObjectName("imageContainer")
             
             # Use absolute positioning for precise overlay placement
@@ -145,20 +143,20 @@ class MonitoringTab(QWidget):
             self.frame_label = QLabel(self.image_container)
             self.frame_label.setObjectName("frameLabel")
             self.frame_label.setAlignment(Qt.AlignCenter)
-            self.frame_label.setGeometry(0, 0, 640, 480)  # 4:3 ratio (640x480)
+            self.frame_label.setGeometry(0, 0, CAMERA_FRAME_WIDTH, CAMERA_FRAME_HEIGHT)  # 16:9 ratio (640x360)
             
             # Actual image label for camera images
             self.image_label = QLabel(self.image_container)
             self.image_label.setObjectName("imageLabel")
             self.image_label.setAlignment(Qt.AlignCenter)
-            self.image_label.setFixedSize(480, 360)  # 4:3 ratio (480x360)
-            self.image_label.setStyleSheet("background-color: transparent;")
+            self.image_label.setFixedSize(CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT)  # 16:9 ratio (480x270)
+            self.image_label.setStyleSheet(TRANSPARENT_STYLE)
             
             # Center the image label in the container
             self.image_label.setGeometry(
-                (640 - 480) // 2,  # Center horizontally
-                (480 - 360) // 2,  # Center vertically
-                480, 360
+                (CAMERA_FRAME_WIDTH - CAMERA_IMAGE_WIDTH) // 2,  # Center horizontally
+                (CAMERA_FRAME_HEIGHT - CAMERA_IMAGE_HEIGHT) // 2,  # Center vertically
+                CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT
             )
             
             # Explicitly set z-order
@@ -183,22 +181,22 @@ class MonitoringTab(QWidget):
             # FPS counter
             self.fps_label = QLabel("0/0 fps")
             self.fps_label.setAlignment(Qt.AlignRight)
-            self.fps_label.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 12px; padding: 5px;")
+            self.fps_label.setStyleSheet(f"color: {TEXT_PRIMARY.name()}; font-size: 12px; padding: 5px;")
             self.layout.addWidget(self.fps_label)
             
             # Load the frame background
             self._load_frame_background()
             
         def _load_frame_background(self):
-            """Load the frame_4_3.png background image"""
-            frame_path = "src/resources/images/frame_4_3.png"
+            """Load the frame_16_9.png background image"""
+            frame_path = DEFAULT_FRAME_IMAGE_PATH
             if os.path.exists(frame_path):
                 frame_pixmap = QPixmap(frame_path)
                 if not frame_pixmap.isNull():
-                    # Scale frame to fit the frame label, maintain 4:3 ratio
+                    # Scale frame to fit the frame label, maintain 16:9 ratio
                     scaled_frame = frame_pixmap.scaled(
-                        640, 480, 
-                        Qt.IgnoreAspectRatio,  # Ensure exact 4:3 ratio is maintained
+                        CAMERA_FRAME_WIDTH, CAMERA_FRAME_HEIGHT, 
+                        Qt.IgnoreAspectRatio,  # Ensure exact 16:9 ratio is maintained
                         Qt.SmoothTransformation
                     )
                     self.frame_label.setPixmap(scaled_frame)
@@ -283,7 +281,7 @@ class MonitoringTab(QWidget):
         # Status label
         self.ball_status_label = QLabel("Not Detected")
         self.ball_status_label.setAlignment(Qt.AlignCenter)
-        self.ball_status_label.setStyleSheet(self.STATUS_NOT_DETECTED)
+        self.ball_status_label.setStyleSheet(STATUS_NOT_DETECTED)
         info_grid.addWidget(self.ball_status_label, 0, 0, 1, 2)
         
         # Position label
@@ -365,7 +363,7 @@ class MonitoringTab(QWidget):
     
     def _apply_fixed_size_to_images(self, images):
         """
-        Apply fixed height to the images, maintaining 4:3 aspect ratio and adding padding
+        Apply fixed height to the images, maintaining 16:9 aspect ratio and adding padding
         
         Args:
             images: Dictionary of camera images (left, right)
@@ -381,25 +379,25 @@ class MonitoringTab(QWidget):
                 orig_width = image.width()
                 orig_height = image.height()
                 
-                # Target dimensions using 4:3 aspect ratio
-                target_width = 480  # Must maintain 4:3 ratio with target_height
-                target_height = 360 # 4:3 ratio with 480 width
+                # Target dimensions using 16:9 aspect ratio
+                target_width = CAMERA_IMAGE_WIDTH  # Must maintain 16:9 ratio with target_height
+                target_height = CAMERA_IMAGE_HEIGHT # 16:9 ratio with 480 width
                 
-                # Calculate new dimensions to fit within the frame while enforcing 4:3 ratio
+                # Calculate new dimensions to fit within the frame while enforcing 16:9 ratio
                 # Determine if we need to scale by width or height
-                if (orig_width / orig_height) > (4 / 3):
-                    # Image is wider than 4:3, constrain by width
+                if (orig_width / orig_height) > (16 / 9):
+                    # Image is wider than 16:9, constrain by width
                     new_width = target_width
-                    new_height = int(new_width * 3 / 4)  # Force 4:3 ratio
+                    new_height = int(new_width * 9 / 16)  # Force 16:9 ratio
                 else:
-                    # Image is taller than 4:3, constrain by height
+                    # Image is taller than 16:9, constrain by height
                     new_height = target_height
-                    new_width = int(new_height * 4 / 3)  # Force 4:3 ratio
+                    new_width = int(new_height * 16 / 9)  # Force 16:9 ratio
                 
                 # Create scaled image using Qt's scaling
                 scaled_image = image.scaled(
                     new_width, new_height,
-                    Qt.IgnoreAspectRatio,  # Force exact 4:3 ratio
+                    Qt.IgnoreAspectRatio,  # Force exact 16:9 ratio
                     Qt.SmoothTransformation  # Better quality scaling
                 )
                 
@@ -438,24 +436,24 @@ class MonitoringTab(QWidget):
                 orig_width = overlay_pixmap.width()
                 orig_height = overlay_pixmap.height()
                 
-                # Target dimensions using 4:3 aspect ratio
-                target_width = 480  # Must maintain 4:3 ratio with target_height
-                target_height = 360  # 4:3 ratio with 480 width
+                # Target dimensions using 16:9 aspect ratio
+                target_width = CAMERA_IMAGE_WIDTH  # Must maintain 16:9 ratio with target_height
+                target_height = CAMERA_IMAGE_HEIGHT  # 16:9 ratio with 480 width
                 
-                # Calculate dimensions that enforce 4:3 ratio
-                if (orig_width / orig_height) > (4 / 3):
-                    # Image is wider than 4:3, constrain by width
+                # Calculate dimensions that enforce 16:9 ratio
+                if (orig_width / orig_height) > (16 / 9):
+                    # Image is wider than 16:9, constrain by width
                     new_width = target_width
-                    new_height = int(new_width * 3 / 4)  # Force 4:3 ratio
+                    new_height = int(new_width * 9 / 16)  # Force 16:9 ratio
                 else:
-                    # Image is taller than 4:3, constrain by height
+                    # Image is taller than 16:9, constrain by height
                     new_height = target_height
-                    new_width = int(new_height * 4 / 3)  # Force 4:3 ratio
+                    new_width = int(new_height * 16 / 9)  # Force 16:9 ratio
                 
                 # Scale the overlay with correct aspect ratio
                 scaled_overlay = overlay_pixmap.scaled(
                     new_width, new_height,
-                    Qt.IgnoreAspectRatio,  # Force exact 4:3 ratio
+                    Qt.IgnoreAspectRatio,  # Force exact 16:9 ratio
                     Qt.SmoothTransformation
                 )
                 
@@ -574,14 +572,14 @@ class MonitoringTab(QWidget):
     def _load_initial_image(self):
         """Load and display the first frame if available"""
         # Only display default placeholder for camera views
-        frame_image_path = "src/resources/images/frame_4_3.png"
+        frame_image_path = DEFAULT_FRAME_IMAGE_PATH
         if os.path.exists(frame_image_path):
             # Load and stretch the frame for both camera views
             frame_pixmap = QPixmap(frame_image_path)
             if not frame_pixmap.isNull() and hasattr(self, 'left_camera_image') and hasattr(self, 'right_camera_image'):
-                # Scale frame to exact 4:3 ratio (640x480)
+                # Scale frame to exact 16:9 ratio (640x360)
                 stretched_frame = frame_pixmap.scaled(
-                    640, 480,
+                    CAMERA_FRAME_WIDTH, CAMERA_FRAME_HEIGHT,
                     Qt.IgnoreAspectRatio,
                     Qt.SmoothTransformation
                 )
@@ -627,7 +625,7 @@ class MonitoringTab(QWidget):
         super(MonitoringTab, self).resizeEvent(event)
         
         # Start or restart the resize timer (300ms delay)
-        self._resize_timer.start(300)
+        self._resize_timer.start(RESIZE_TIMER_DELAY)
         
         # Accept the event
         event.accept()

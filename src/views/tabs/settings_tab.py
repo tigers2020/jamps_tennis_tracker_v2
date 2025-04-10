@@ -19,6 +19,7 @@ from src.utils.ui_theme import (
     get_checkbox_style, get_slider_style, get_spinbox_style,
     get_form_input_label_style, get_message_box_style, get_separator_style
 )
+from src.constants.ui_constants import WINDOW_SIZE_PRESETS
 
 class SettingsTab(QWidget):
     """
@@ -31,19 +32,6 @@ class SettingsTab(QWidget):
     
     # Signal when settings are changed
     settings_changed = Signal()
-    
-    # Window size presets
-    WINDOW_SIZE_PRESETS = [
-        "640 x 480 (SD)",
-        "800 x 600 (SVGA)",
-        "1024 x 768 (XGA)",
-        "1280 x 720 (HD)",
-        "1366 x 768 (Laptop)",
-        "1600 x 900 (HD+)",
-        "1920 x 1080 (Full HD)",
-        "2560 x 1440 (QHD)",
-        "3840 x 2160 (4K UHD)"
-    ]
     
     def __init__(self, parent=None):
         super(SettingsTab, self).__init__(parent)

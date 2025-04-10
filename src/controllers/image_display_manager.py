@@ -5,7 +5,7 @@ This module provides a manager for handling image display related operations
 for the Tennis Ball Tracker system.
 """
 
-from PySide6.QtCore import QObject, Slot, Signal, Qt
+from PySide6.QtCore import QObject, Slot, Signal, Qt, QSize
 from PySide6.QtGui import QPixmap, QPainter, QColor, QPen, QBrush
 from PySide6.QtWidgets import QLabel
 import cv2
@@ -16,6 +16,11 @@ from src.controllers.image_player_controller import ImagePlayerController
 from src.models.app_state import AppState
 from src.utils.logger import Logger
 from src.utils.tennis_ball_detector import draw_detection_overlay, draw_3d_position
+from src.constants.ui_constants import (
+    ASPECT_RATIO_16_9,
+    OPENCV_GREEN,
+    OPENCV_YELLOW
+)
 
 
 class ImageDisplayManager(QObject):
@@ -62,6 +67,10 @@ class ImageDisplayManager(QObject):
         self._left_detection_result = None
         self._right_detection_result = None
         self._position_3d = None
+        
+        # Image cache for better performance (frame_num -> dict of images)
+        self._image_cache = {}
+        self._max_cache_size = 20  # Maximum number of frames to cache
         
         # Connect signals
         self._connect_signals()
@@ -117,6 +126,26 @@ class ImageDisplayManager(QObject):
             elif frame_number == 0:
                 frame_number = 1  # Convert index 0 to frame 1
             
+            # Try to get images from cache first
+            if frame_number in self._image_cache:
+                cached_images = self._image_cache[frame_number]
+                self._images = cached_images
+                
+                # Update display labels
+                if 'left' in cached_images and cached_images['left'] is not None:
+                    self._update_image_display(self._left_image_label, cached_images['left'])
+                
+                if 'right' in cached_images and cached_images['right'] is not None:
+                    self._update_image_display(self._right_image_label, cached_images['right'])
+                
+                # Copy original pixmaps from cache
+                self._left_original_pixmap = self._image_cache.get(f'left_orig_{frame_number}')
+                self._right_original_pixmap = self._image_cache.get(f'right_orig_{frame_number}')
+                
+                # Emit signal that images have been updated
+                self.images_updated.emit(frame_number)
+                return
+            
             # Get both camera images in one call
             left_pixmap, right_pixmap = self.image_manager.get_images(frame_number)
             
@@ -133,6 +162,19 @@ class ImageDisplayManager(QObject):
             # Apply detection overlays if available
             self._apply_detection_overlays()
             
+            # Update cache
+            self._image_cache[frame_number] = self._images
+            self._image_cache[f'left_orig_{frame_number}'] = self._left_original_pixmap
+            self._image_cache[f'right_orig_{frame_number}'] = self._right_original_pixmap
+            
+            # Limit cache size
+            if len(self._image_cache) > self._max_cache_size * 3:  # Each frame takes 3 entries
+                keys = sorted([k for k in self._image_cache.keys() if not isinstance(k, str)])
+                for key in keys[:len(keys) - self._max_cache_size]:
+                    del self._image_cache[key]
+                    del self._image_cache[f'left_orig_{key}']
+                    del self._image_cache[f'right_orig_{key}']
+            
             # Emit signal that images have been updated
             self.images_updated.emit(frame_number)
             
@@ -141,7 +183,7 @@ class ImageDisplayManager(QObject):
     
     def _update_image_display(self, label, pixmap):
         """
-        Update image display with proper scaling and maintaining 4:3 aspect ratio.
+        Update image display with proper scaling and maintaining 16:9 aspect ratio.
         
         Args:
             label: QLabel to update
@@ -166,21 +208,21 @@ class ImageDisplayManager(QObject):
             label.setPixmap(pixmap)
             return
             
-        # Calculate dimensions to enforce 4:3 ratio
-        # Always maintain 4:3 ratio
-        target_ratio = 4.0 / 3.0
+        # Calculate dimensions to enforce 16:9 ratio
+        # Always maintain 16:9 ratio
+        target_size = QSize(label_width, label_height)
         
-        # Determine scaling based on label constraints
-        if (label_width / label_height) > target_ratio:
-            # Label is wider than 4:3, use height as constraint
-            new_height = label_height
-            new_width = int(new_height * target_ratio)
+        # Check if we need to scale by width or height
+        if target_size.width() / target_size.height() > ASPECT_RATIO_16_9:
+            # Label is wider than 16:9, use height as constraint
+            new_height = target_size.height()
+            new_width = int(new_height * ASPECT_RATIO_16_9)
         else:
-            # Label is taller than 4:3, use width as constraint
-            new_width = label_width
-            new_height = int(new_width / target_ratio)
+            # Label is taller than 16:9, use width as constraint
+            new_width = target_size.width()
+            new_height = int(new_width / ASPECT_RATIO_16_9)
         
-        # Scale the image maintaining 4:3 ratio
+        # Scale the image maintaining 16:9 ratio
         scaled_pixmap = pixmap.scaled(
             new_width, new_height,
             Qt.IgnoreAspectRatio,  # We've manually calculated the ratio
@@ -217,7 +259,7 @@ class ImageDisplayManager(QObject):
     
     def _resize_image(self, label):
         """
-        Resize a single image maintaining 4:3 aspect ratio.
+        Resize a single image maintaining 16:9 aspect ratio.
         
         Args:
             label: QLabel containing the image to resize
@@ -239,20 +281,20 @@ class ImageDisplayManager(QObject):
         if label_width <= 0 or label_height <= 0:
             return
             
-        # Always maintain 4:3 ratio
-        target_ratio = 4.0 / 3.0
+        # Always maintain 16:9 ratio
+        target_size = QSize(label_width, label_height)
         
-        # Determine scaling based on label constraints
-        if (label_width / label_height) > target_ratio:
-            # Label is wider than 4:3, use height as constraint
-            new_height = label_height
-            new_width = int(new_height * target_ratio)
+        # Check if we need to scale by width or height
+        if target_size.width() / target_size.height() > ASPECT_RATIO_16_9:
+            # Label is wider than 16:9, use height as constraint
+            new_height = target_size.height()
+            new_width = int(new_height * ASPECT_RATIO_16_9)
         else:
-            # Label is taller than 4:3, use width as constraint
-            new_width = label_width
-            new_height = int(new_width / target_ratio)
+            # Label is taller than 16:9, use width as constraint
+            new_width = target_size.width()
+            new_height = int(new_width / ASPECT_RATIO_16_9)
         
-        # Create scaled version with 4:3 ratio
+        # Create scaled version with 16:9 ratio
         scaled_pixmap = original_pixmap.scaled(
             new_width, new_height,
             Qt.IgnoreAspectRatio,  # We've manually calculated the ratio
@@ -323,7 +365,7 @@ class ImageDisplayManager(QObject):
                     overlay_image = draw_detection_overlay(
                         image_array, 
                         self._left_detection_result, 
-                        color=(0, 255, 0)  # Green
+                        color=OPENCV_GREEN  # Green
                     )
                     
                     # Draw 3D position if available
@@ -331,7 +373,7 @@ class ImageDisplayManager(QObject):
                         overlay_image = draw_3d_position(
                             overlay_image,
                             self._position_3d,
-                            color=(0, 255, 0)  # Green
+                            color=OPENCV_GREEN  # Green
                         )
                     
                     # Convert back to QPixmap and update label
@@ -352,7 +394,7 @@ class ImageDisplayManager(QObject):
                     overlay_image = draw_detection_overlay(
                         image_array, 
                         self._right_detection_result, 
-                        color=(0, 255, 255)  # Yellow
+                        color=OPENCV_YELLOW  # Yellow
                     )
                     
                     # Convert back to QPixmap and update label

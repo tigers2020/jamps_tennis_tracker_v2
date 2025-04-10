@@ -9,11 +9,16 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QComboBox, QGridLayout, QGroupBox
 )
+from PySide6.QtGui import QPixmap
 
 from src.controllers.fpga_connection_manager import FpgaConnectionManager, FpgaSettingsDialog
 from src.utils.logger import Logger
 from src.utils.ui_theme import (
     get_button_style, get_combobox_style, get_label_style, get_group_box_style
+)
+from src.constants.ui_constants import (
+    CONNECTION_STATUS_RED_STYLE,
+    CONNECTION_STATUS_GREEN_STYLE
 )
 
 
@@ -175,14 +180,14 @@ class FpgaConnectionPanel(QWidget):
         if connected:
             self.connect_button.setText("Disconnect")
             self.connection_status_label.setText("Connected")
-            self.connection_status_label.setStyleSheet("color: green; font-weight: bold;")
+            self.connection_status_label.setStyleSheet(CONNECTION_STATUS_GREEN_STYLE)
             self.com_port_combo.setEnabled(False)
             self.settings_button.setEnabled(False)
             self.refresh_button.setEnabled(False)
         else:
             self.connect_button.setText("Connect")
-            self.connection_status_label.setText("Disconnected")
-            self.connection_status_label.setStyleSheet("color: red; font-weight: bold;")
+            self.connection_status_label.setText("Not Connected")
+            self.connection_status_label.setStyleSheet(CONNECTION_STATUS_RED_STYLE)
             self.com_port_combo.setEnabled(True)
             self.settings_button.setEnabled(True)
             self.refresh_button.setEnabled(True)

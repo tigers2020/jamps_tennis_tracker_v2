@@ -21,6 +21,12 @@ from src.utils.tennis_ball_detector import (
     calculate_3d_position,
     draw_detection_overlay
 )
+from src.constants.ui_constants import (
+    TENNIS_BALL_DETECTION_THRESHOLD,
+    TENNIS_BALL_MIN_CONTOUR_AREA,
+    TENNIS_BALL_HSV_LOWER,
+    TENNIS_BALL_HSV_UPPER
+)
 
 
 class TennisBallDetectionThread(threading.Thread):
@@ -59,17 +65,17 @@ class TennisBallDetectionThread(threading.Thread):
     def _load_detection_settings(self):
         """Load detection settings from settings manager"""
         # Frame difference detection settings
-        self.frame_diff_threshold = self.settings_manager.get("ball_detection_threshold", 30)
-        self.min_contour_area = self.settings_manager.get("min_contour_area", 50)
+        self.frame_diff_threshold = self.settings_manager.get("ball_detection_threshold", TENNIS_BALL_DETECTION_THRESHOLD)
+        self.min_contour_area = self.settings_manager.get("min_contour_area", TENNIS_BALL_MIN_CONTOUR_AREA)
         
         # Color detection settings
         self.use_color_detection = self.settings_manager.get("use_color_detection", True)
-        hsv_low_h = self.settings_manager.get("hsv_low_h", 25)
-        hsv_low_s = self.settings_manager.get("hsv_low_s", 50)
-        hsv_low_v = self.settings_manager.get("hsv_low_v", 50)
-        hsv_high_h = self.settings_manager.get("hsv_high_h", 65)
-        hsv_high_s = self.settings_manager.get("hsv_high_s", 255)
-        hsv_high_v = self.settings_manager.get("hsv_high_v", 255)
+        hsv_low_h = self.settings_manager.get("hsv_low_h", TENNIS_BALL_HSV_LOWER[0])
+        hsv_low_s = self.settings_manager.get("hsv_low_s", TENNIS_BALL_HSV_LOWER[1])
+        hsv_low_v = self.settings_manager.get("hsv_low_v", TENNIS_BALL_HSV_LOWER[2])
+        hsv_high_h = self.settings_manager.get("hsv_high_h", TENNIS_BALL_HSV_UPPER[0])
+        hsv_high_s = self.settings_manager.get("hsv_high_s", TENNIS_BALL_HSV_UPPER[1])
+        hsv_high_v = self.settings_manager.get("hsv_high_v", TENNIS_BALL_HSV_UPPER[2])
         
         self.hsv_lower = np.array([hsv_low_h, hsv_low_s, hsv_low_v])
         self.hsv_upper = np.array([hsv_high_h, hsv_high_s, hsv_high_v])

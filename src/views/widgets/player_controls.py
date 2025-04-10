@@ -19,7 +19,13 @@ from src.models.app_state import AppState
 from src.utils.logger import Logger
 from src.utils.settings_manager import SettingsManager
 from src.utils.ui_theme import (
-    get_player_button_style, get_speed_button_style, get_player_slider_style
+    get_player_button_style, get_speed_button_style, get_player_slider_style,
+    get_button_style, get_combobox_style
+)
+from src.constants.ui_constants import (
+    WHITE_TEXT_STYLE,
+    SEPARATOR_STYLE,
+    PLAY_BUTTON_ACTIVE_STYLE
 )
 
 class PlayerControls(QWidget):
@@ -95,8 +101,10 @@ class PlayerControls(QWidget):
         time_layout.setSpacing(10)
         
         # Time display
-        self.time_label = QLabel("00:00 / 00:00")
-        self.time_label.setStyleSheet("color: white; font-size: 12px;")
+        self.time_label = QLabel("00:00:00")
+        self.time_label.setFixedWidth(60)
+        self.time_label.setAlignment(Qt.AlignCenter)
+        self.time_label.setStyleSheet(WHITE_TEXT_STYLE)
         time_layout.addWidget(self.time_label)
         
         # Time slider
@@ -167,7 +175,9 @@ class PlayerControls(QWidget):
         
         # Speed control
         speed_label = QLabel("Speed:")
-        speed_label.setStyleSheet("color: white; font-size: 12px;")
+        speed_label.setFixedWidth(45)
+        speed_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        speed_label.setStyleSheet(WHITE_TEXT_STYLE)
         speed_layout.addWidget(speed_label)
         
         # Add speed preset buttons
@@ -196,9 +206,11 @@ class PlayerControls(QWidget):
         self.speed_slider.setStyleSheet(get_player_slider_style())
         speed_layout.addWidget(self.speed_slider)
         
-        # Initial label text
-        self.speed_label = QLabel(f"1.0x (1000 fps)")
-        self.speed_label.setStyleSheet("color: white; font-size: 12px;")
+        # Add speed display
+        self.speed_label = QLabel("1x")
+        self.speed_label.setFixedWidth(30)
+        self.speed_label.setAlignment(Qt.AlignCenter)
+        self.speed_label.setStyleSheet(WHITE_TEXT_STYLE)
         speed_layout.addWidget(self.speed_label)
         
         # Add the speed layout to the main layout
@@ -426,7 +438,7 @@ class PlayerControls(QWidget):
             self.play_pause_btn.setIcon(QIcon(os.path.join(icons_dir, "play.png")))
         
         # Visual feedback - highlight the active button
-        self.play_pause_btn.setStyleSheet("" if state != 'play' else "background-color: #8af;")
+        self.play_pause_btn.setStyleSheet("" if state != 'play' else PLAY_BUTTON_ACTIVE_STYLE)
     
     def update_speed(self, fps):
         """

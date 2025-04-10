@@ -6,11 +6,12 @@
 
 import cv2
 import numpy as np
-from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QImage, QPixmap, QCursor
+from PySide6.QtCore import Qt, QPoint, Signal, QSize
+from PySide6.QtGui import QImage, QPixmap, QCursor, QPainter
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QMenu, QApplication
 
 from src.models.app_state import AppState
+from src.constants.ui_constants import DARK_BACKGROUND_STYLE
 
 
 class ImageView(QWidget):
@@ -24,6 +25,9 @@ class ImageView(QWidget):
     MIN_ZOOM = 0.1
     MAX_ZOOM = 10.0
     ZOOM_FACTOR = 1.2
+    
+    # Signal emitted when image is clicked
+    clicked = Signal(int, int)
     
     def __init__(self, parent=None):
         """
@@ -53,20 +57,20 @@ class ImageView(QWidget):
     def _init_ui(self):
         """UI 요소를 초기화합니다."""
         # 레이아웃 설정
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
         
         # 이미지 라벨 생성 및 설정
         self.label = QLabel()
         self.label.setAlignment(Qt.AlignCenter)
-        self.label.setMinimumSize(100, 100)
-        self.label.setStyleSheet("background-color: #2A2A2A;")
+        self.label.setStyleSheet(DARK_BACKGROUND_STYLE)
         
         # 빈 픽스맵으로 초기화
         self.clear()
         
         # 레이아웃에 라벨 추가
-        layout.addWidget(self.label)
+        self.layout.addWidget(self.label)
         
         # 마우스 트래킹 활성화
         self.setMouseTracking(True)

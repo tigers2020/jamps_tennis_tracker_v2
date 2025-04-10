@@ -4,137 +4,127 @@ Simulation Controller Module
 This module provides a controller for simulating tennis ball tracking.
 """
 
-import time
 import random
-from PySide6.QtCore import QObject, QTimer, Signal
+import time
+from PySide6.QtCore import QObject, QTimer, Slot
 
 from src.models.app_state import AppState
-from src.views.widgets.led_display import LedDisplay
 from src.utils.logger import Logger
+from src.controllers.image_manager import ImageManager
+from src.views.widgets.led_display import LedDisplay
+from src.constants.ui_constants import (
+    SIMULATION_UPDATE_INTERVAL,
+    SIMULATION_BALL_X_MIN, SIMULATION_BALL_X_MAX,
+    SIMULATION_BALL_Y_MIN, SIMULATION_BALL_Y_MAX,
+    SIMULATION_BALL_Z_MIN, SIMULATION_BALL_Z_MAX,
+    SIMULATION_STATUS_CHANGE_PROBABILITY,
+    SIMULATION_DEFAULT_TOTAL_FRAMES,
+    SIMULATION_BLINK_RATE
+)
+
 
 class SimulationController(QObject):
     """
-    Controller for managing tennis ball movement simulation
+    Controller for simulating ball tracking and FPGA behavior.
     
-    This class provides the following functionality:
-    - Ball position simulation
-    - Ball status simulation (in/out)
-    - Simulation timer management
+    This class creates random ball positions and LED status updates
+    to demonstrate the system's functionality without real data.
     """
     
-    # Simulation state change signal
-    simulation_state_changed = Signal(bool)  # running/stopped
-    
     def __init__(self):
+        """Initialize the simulation controller"""
         super(SimulationController, self).__init__()
         
         # Get singleton instances
         self.app_state = AppState.instance()
         self.logger = Logger.instance()
         
-        # Simulation timer
+        # Set up simulation timer
         self._simulation_timer = QTimer(self)
-        self._simulation_timer.timeout.connect(self._simulate_ball_movement)
-        self._simulation_timer.setInterval(500)  # update every 500ms
+        self._simulation_timer.setInterval(SIMULATION_UPDATE_INTERVAL)  # update every 500ms
+        self._simulation_timer.timeout.connect(self._update_simulation)
         
-        # Simulation state
-        self._simulation_running = False
-        
-        # Connect app state signals
-        self.app_state.playback_state_changed.connect(self._handle_playback_state_changed)
+        # LED display reference (will be set externally)
+        self._led_display = None
     
-    def _handle_playback_state_changed(self, state):
+    def set_led_display(self, led_display):
         """
-        Handle playback state change
+        Set the LED display to control during simulation
         
         Args:
-            state: New playback state ('play', 'pause', 'stop')
+            led_display: LedDisplay widget to control
         """
-        # Simulation mode (no images loaded)
-        if state == 'play':
-            self.start_simulation()
-        elif state == 'pause':
-            self._simulation_timer.stop()
-        elif state == 'stop':
-            self.stop_simulation()
-    
-    def _simulate_ball_movement(self):
-        """Simulate ball movement for testing"""
-        # Generate random ball position
-        x = random.uniform(-10.0, 10.0)
-        y = random.uniform(0.0, 10.0)
-        z = random.uniform(-10.0, 10.0)
-        
-        # Update app state
-        self.app_state.ball_position = (x, y, z)
-        
-        # Increment current frame
-        current_frame = self.app_state.current_frame
-        if current_frame < self.app_state.total_frames:
-            self.app_state.current_frame = current_frame + 1
-        else:
-            self.app_state.current_frame = 0
-        
-        # Occasionally change status randomly (10% chance)
-        if random.random() < 0.1:
-            self._update_random_ball_status()
-    
-    def _update_random_ball_status(self):
-        """Change status randomly for testing"""
-        # Choose a random status between 0-5
-        status = random.randint(0, 5)
-        blink_rate = 10.0 if status in [LedDisplay.STATUS_OUT_OF_BOUNDS, LedDisplay.STATUS_FAULT] else 0.0
-        
-        # Update for compatibility with app_state.led_state
-        in_bounds = status in [LedDisplay.STATUS_IN_BOUNDS, LedDisplay.STATUS_IN_SERVICE]
-        self.app_state.led_state = (in_bounds, blink_rate)
+        self._led_display = led_display
     
     def start_simulation(self):
-        """Start simulation"""
-        if not self._simulation_running:
-            self.logger.debug("Starting simulation")
-            self._simulation_timer.start()
-            self._simulation_running = True
+        """Start the simulation"""
+        # Initialize simulation state
+        self._init_simulation()
+        
+        # Start timer
+        self._simulation_timer.start()
+        self.logger.debug("Ball position simulation started")
+    
+    def _update_simulation(self):
+        """Update the simulation state (called by timer)"""
+        try:
+            # Generate a random position within reasonable range
+            x = random.uniform(SIMULATION_BALL_X_MIN, SIMULATION_BALL_X_MAX)
+            y = random.uniform(SIMULATION_BALL_Y_MIN, SIMULATION_BALL_Y_MAX)
+            z = random.uniform(SIMULATION_BALL_Z_MIN, SIMULATION_BALL_Z_MAX)
             
-            # Only set total_frames if not in image mode
-            from src.controllers.image_manager import ImageManager
-            image_manager = ImageManager.instance()
-            if image_manager.get_total_images() == 0:
-                # Set initial values (only if no images)
-                self.app_state.total_frames = 100
-                self.logger.debug("Simulation mode: setting total_frames to 100")
+            # Update app state with new position
+            self.app_state.set_ball_position(x, y, z)
             
-            # Emit simulation state change signal
-            self.simulation_state_changed.emit(True)
+            # Update current frame to simulate playback
+            current_frame = self.app_state.current_frame
+            if current_frame < self.app_state.total_frames - 1:
+                self.app_state.current_frame = current_frame + 1
+            else:
+                self.app_state.current_frame = 0
             
-            # Update app state
-            self.app_state.playback_state = 'play'
+            # Occasionally change status randomly (10% chance)
+            if random.random() < SIMULATION_STATUS_CHANGE_PROBABILITY:
+                if self._led_display:
+                    # Update LED display
+                    
+                    # Choose a random status between 0-5
+                    status = random.randint(0, 5)
+                    blink_rate = SIMULATION_BLINK_RATE if status in [LedDisplay.STATUS_OUT_OF_BOUNDS, LedDisplay.STATUS_FAULT] else 0.0
+                    
+                    # Set the new status
+                    self._led_display.set_status(status, blink_rate)
+                    
+                    self.logger.debug(f"Simulation: changed LED status to {status}")
+                    
+        except Exception as e:
+            self.logger.error(f"Simulation update error: {e}")
+    
+    def _init_simulation(self):
+        """Initialize simulation state and data"""
+        # Set initial position
+        self.app_state.set_ball_position(0, 0, 0)
+        
+        # Get image manager instance
+        image_manager = ImageManager.instance()
+        
+        # If no images are loaded, we simulate frames as well
+        if image_manager.get_total_images() == 0:
+            # Set a default number of frames for the simulation
+            self.app_state.total_frames = SIMULATION_DEFAULT_TOTAL_FRAMES
+            self.logger.debug(f"Simulation mode: setting total_frames to {SIMULATION_DEFAULT_TOTAL_FRAMES}")
     
     def stop_simulation(self):
-        """Stop simulation"""
-        if self._simulation_running:
-            self.logger.debug("Stopping simulation")
-            self._simulation_timer.stop()
-            self._simulation_running = False
-            
-            # Emit simulation state change signal
-            self.simulation_state_changed.emit(False)
-            
-            # Update app state
-            self.app_state.playback_state = 'stop'
-    
-    def toggle_simulation(self):
-        """Toggle simulation state"""
-        if self._simulation_running:
-            self.stop_simulation()
-        else:
-            self.start_simulation()
-    
-    def is_running(self):
-        """
-        Check if simulation is running
+        """Stop the simulation"""
+        self._simulation_timer.stop()
         
-        Returns:
-            bool: True if running, False if not
-        """
-        return self._simulation_running 
+        # Reset LED display if we have one
+        if self._led_display:
+            self._led_display.set_status(LedDisplay.STATUS_NOT_DETECTED)
+        
+        self.logger.debug("Ball position simulation stopped")
+    
+    @property
+    def is_running(self):
+        """Check if simulation is currently running"""
+        return self._simulation_timer.isActive() 

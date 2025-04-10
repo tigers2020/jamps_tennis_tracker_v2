@@ -11,6 +11,13 @@ from PySide6.QtGui import QColor, QPalette
 
 from src.models.app_state import AppState
 from src.utils.config import Config
+from src.constants.ui_constants import (
+    LED_GREEN, LED_RED, LED_BLUE, LED_YELLOW, LED_OFF,
+    LED_SIZE_MEDIUM,
+    LED_STATUS_NOT_DETECTED, LED_STATUS_IN_BOUNDS, LED_STATUS_OUT_OF_BOUNDS,
+    LED_STATUS_BOUNCE, LED_STATUS_IN_SERVICE, LED_STATUS_FAULT,
+    WHITE_TEXT_STYLE
+)
 
 class LedIndicator(QFrame):
     """
@@ -22,18 +29,18 @@ class LedIndicator(QFrame):
     - Blinking (alternating between on and off at a specified rate)
     """
     
-    def __init__(self, color=QColor(0, 255, 0), parent=None):
+    def __init__(self, color=LED_GREEN, parent=None):
         super(LedIndicator, self).__init__(parent)
         
         # Set up the widget
-        self.setMinimumSize(30, 30)
-        self.setMaximumSize(30, 30)
+        self.setMinimumSize(LED_SIZE_MEDIUM, LED_SIZE_MEDIUM)
+        self.setMaximumSize(LED_SIZE_MEDIUM, LED_SIZE_MEDIUM)
         self.setFrameShape(QFrame.Box)
         
         # Initialize state
         self._on = False
         self._color = color
-        self._default_color = QColor(100, 100, 100)  # Off state color
+        self._default_color = LED_OFF  # Off state color
         self._blink_rate = 0  # Hz (0 = no blinking)
         
         # Timer for blinking
@@ -107,14 +114,6 @@ class LedDisplay(QWidget):
       - Fault
     """
     
-    # Status definitions
-    STATUS_NOT_DETECTED = 0
-    STATUS_IN_BOUNDS = 1
-    STATUS_OUT_OF_BOUNDS = 2
-    STATUS_BOUNCE = 3
-    STATUS_IN_SERVICE = 4
-    STATUS_FAULT = 5
-    
     def __init__(self, parent=None):
         super(LedDisplay, self).__init__(parent)
         
@@ -123,7 +122,7 @@ class LedDisplay(QWidget):
         self.config = Config.instance()
         
         # Current status
-        self._current_status = self.STATUS_NOT_DETECTED
+        self._current_status = LED_STATUS_NOT_DETECTED
         
         # Set up the UI
         self.setup_ui()
@@ -137,28 +136,28 @@ class LedDisplay(QWidget):
         self.status_leds = {}
         
         # Ball Detection LED (blue)
-        self.status_leds["detection"] = self._create_led_group("Detection", QColor(0, 120, 255))
+        self.status_leds["detection"] = self._create_led_group("Detection", LED_BLUE)
         
         # In bounds LED (green)
-        self.status_leds["in_bounds"] = self._create_led_group("In", QColor(0, 200, 0))
+        self.status_leds["in_bounds"] = self._create_led_group("In", LED_GREEN)
         
         # Out of bounds LED (red)
-        self.status_leds["out_bounds"] = self._create_led_group("Out", QColor(255, 0, 0))
+        self.status_leds["out_bounds"] = self._create_led_group("Out", LED_RED)
         
         # Bounce LED (yellow)
-        self.status_leds["bounce"] = self._create_led_group("Bounce", QColor(255, 200, 0))
+        self.status_leds["bounce"] = self._create_led_group("Bounce", LED_YELLOW)
         
         # Add stretch for spacing
         self.layout.addStretch()
         
         # Set initial state (not detected)
-        self.update_status(self.STATUS_NOT_DETECTED)
+        self.update_status(LED_STATUS_NOT_DETECTED)
     
     def _create_led_group(self, label_text, color):
         """Create a LED display with label as a group"""
         # Label
         label = QLabel(label_text + ":")
-        label.setStyleSheet("color: white;")
+        label.setStyleSheet(WHITE_TEXT_STYLE)
         
         # LED display
         led = LedIndicator(color)
@@ -181,9 +180,9 @@ class LedDisplay(QWidget):
         """
         # Convert from legacy In/Out state to new status model
         if in_bounds:
-            self.update_status(self.STATUS_IN_BOUNDS)
+            self.update_status(LED_STATUS_IN_BOUNDS)
         else:
-            self.update_status(self.STATUS_OUT_OF_BOUNDS, blink_rate)
+            self.update_status(LED_STATUS_OUT_OF_BOUNDS, blink_rate)
     
     def update_status(self, status, blink_rate=0):
         """
@@ -200,28 +199,28 @@ class LedDisplay(QWidget):
             led.set_state(False, 0)
         
         # Set appropriate LEDs based on status
-        if status == self.STATUS_NOT_DETECTED:
+        if status == LED_STATUS_NOT_DETECTED:
             # No LEDs are on
             pass
             
-        elif status == self.STATUS_IN_BOUNDS:
+        elif status == LED_STATUS_IN_BOUNDS:
             self.status_leds["detection"].set_state(True, 0)
             self.status_leds["in_bounds"].set_state(True, 0)
             
-        elif status == self.STATUS_OUT_OF_BOUNDS:
+        elif status == LED_STATUS_OUT_OF_BOUNDS:
             self.status_leds["detection"].set_state(True, 0)
             self.status_leds["out_bounds"].set_state(True, blink_rate)
             
-        elif status == self.STATUS_BOUNCE:
+        elif status == LED_STATUS_BOUNCE:
             self.status_leds["detection"].set_state(True, 0)
             self.status_leds["bounce"].set_state(True, blink_rate)
             
-        elif status == self.STATUS_IN_SERVICE:
+        elif status == LED_STATUS_IN_SERVICE:
             self.status_leds["detection"].set_state(True, 0)
             self.status_leds["in_bounds"].set_state(True, 0)
             self.status_leds["bounce"].set_state(True, 0)
             
-        elif status == self.STATUS_FAULT:
+        elif status == LED_STATUS_FAULT:
             self.status_leds["detection"].set_state(True, 0)
             self.status_leds["out_bounds"].set_state(True, blink_rate)
             self.status_leds["bounce"].set_state(True, 0)
@@ -233,12 +232,12 @@ class LedDisplay(QWidget):
     def get_status_text(self):
         """Return text corresponding to the current status"""
         status_texts = {
-            self.STATUS_NOT_DETECTED: "Ball Not Detected",
-            self.STATUS_IN_BOUNDS: "In Bounds",
-            self.STATUS_OUT_OF_BOUNDS: "Out of Bounds",
-            self.STATUS_BOUNCE: "Bounce Detected",
-            self.STATUS_IN_SERVICE: "In Service",
-            self.STATUS_FAULT: "Fault"
+            LED_STATUS_NOT_DETECTED: "Ball Not Detected",
+            LED_STATUS_IN_BOUNDS: "In Bounds",
+            LED_STATUS_OUT_OF_BOUNDS: "Out of Bounds",
+            LED_STATUS_BOUNCE: "Bounce Detected",
+            LED_STATUS_IN_SERVICE: "In Service",
+            LED_STATUS_FAULT: "Fault"
         }
         
         return status_texts.get(self._current_status, "Unknown Status") 

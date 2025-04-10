@@ -14,6 +14,10 @@ from src.models.app_state import AppState
 from src.controllers.image_manager import ImageManager
 from src.utils.logger import Logger
 from src.utils.settings_manager import SettingsManager
+from src.constants.ui_constants import (
+    TENNIS_BALL_DETECTION_THRESHOLD,
+    TENNIS_BALL_MIN_CONTOUR_AREA
+)
 
 
 class BallDetectionThread(threading.Thread):
@@ -40,8 +44,8 @@ class BallDetectionThread(threading.Thread):
         self.settings_manager = SettingsManager.instance()
         
         # Load detection parameters from settings
-        self.threshold = self.settings_manager.get('ball_detection_threshold', 30)
-        self.min_contour_area = self.settings_manager.get('min_contour_area', 50)
+        self.threshold = self.settings_manager.get('ball_detection_threshold', TENNIS_BALL_DETECTION_THRESHOLD)
+        self.min_contour_area = self.settings_manager.get('min_contour_area', TENNIS_BALL_MIN_CONTOUR_AREA)
         self.use_hough = self.settings_manager.get('use_hough_detection', False)
         self.hough_params = {
             'dp': self.settings_manager.get('hough_dp', 1),
