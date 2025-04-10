@@ -9,7 +9,7 @@ import threading
 import time
 import cv2
 import numpy as np
-from src.models.singleton import Singleton
+from src.models.singleton import Singleton, qt_singleton
 from src.models.app_state import AppState
 from src.controllers.image_manager import ImageManager
 from src.utils.logger import Logger
@@ -245,7 +245,8 @@ class BallDetectionThread(threading.Thread):
         self.logger.debug("Ball detection thread resumed")
 
 
-class BallDetectionController(metaclass=Singleton):
+@qt_singleton
+class BallDetectionController:
     """
     Controller for tennis ball detection.
     Manages the detection thread and coordinates with UI.

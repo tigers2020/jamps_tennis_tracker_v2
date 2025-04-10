@@ -108,8 +108,8 @@ class MonitoringTab(QWidget):
         # Ball status display manager (initialized after UI is created)
         self.ball_status_manager = None
         
-        # Ball detection controller
-        self.ball_detection = BallDetectionController()
+        # Ball detection controller - using qt_singleton pattern
+        self.ball_detection = BallDetectionController.instance()
     
     class CameraViewLayout:
         """
