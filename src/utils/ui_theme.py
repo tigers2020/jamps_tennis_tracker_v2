@@ -8,79 +8,23 @@ It provides a consistent look and feel for all components.
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from typing import Dict, Any
-
-# =============================================================================
-# COLOR CONSTANTS
-# =============================================================================
-
-# Main theme colors
-PRIMARY_COLOR = QColor(0, 180, 216, 255)      # Bright blue accent color (00b4d8)
-PRIMARY_DARK = QColor(0, 119, 182, 255)       # Darker blue for hover/pressed states (0077b6)
-SECONDARY_COLOR = QColor(144, 224, 239, 255)  # Light blue for secondary elements (90e0ef)
-
-# Background colors
-BG_DARK = QColor(18, 18, 18, 255)            # Main background (121212)
-BG_MEDIUM = QColor(30, 30, 30, 255)          # Slightly lighter background for contrast (1e1e1e)
-BG_LIGHT = QColor(45, 45, 45, 255)           # Light background for input elements (2d2d2d)
-BG_HOVER = QColor(61, 61, 61, 255)           # Hover state background (3d3d3d)
-
-# Border colors
-BORDER_DARK = QColor(85, 85, 85, 255)        # Main border color (555555)
-BORDER_LIGHT = QColor(102, 102, 102, 255)    # Lighter border for hover states (666666)
-BORDER_FOCUS = QColor(0, 180, 216, 255)      # Border color for focus state (00b4d8)
-
-# Text colors
-TEXT_PRIMARY = QColor(224, 224, 224, 255)    # Main text color (e0e0e0)
-TEXT_SECONDARY = QColor(187, 187, 187, 255)  # Secondary text color (bbbbbb)
-TEXT_DISABLED = QColor(136, 136, 136, 255)   # Disabled text color (888888)
-TEXT_BRIGHT = QColor(255, 255, 255, 255)     # Bright text for buttons (ffffff)
-TEXT_DARK = QColor(17, 17, 17, 255)          # Dark text for contrast on light backgrounds (111111)
-
-# Status colors
-SUCCESS_COLOR = QColor(76, 175, 80, 255)     # Green for success (4caf50)
-WARNING_COLOR = QColor(255, 152, 0, 255)     # Orange for warnings (ff9800)
-ERROR_COLOR = QColor(244, 67, 54, 255)       # Red for errors (f44336)
-INFO_COLOR = QColor(33, 150, 243, 255)       # Blue for info (2196f3)
-
-# Status Background/Text Colors (already QColor)
-STATUS_IMPLEMENTED_BG = QColor(60, 179, 113, 180)  # Medium Sea Green, less bright
-STATUS_COMING_SOON_BG = QColor(255, 215, 0, 180)   # Gold, less bright
-STATUS_TEXT_COLOR = QColor(17, 17, 17, 255)        # Dark text for better contrast
-
-# Gradient colors
-GRADIENT_START = QColor(0, 119, 182, 255)    # (0077b6)
-GRADIENT_END = QColor(0, 180, 216, 255)      # (00b4d8)
-
-# =============================================================================
-# SIZING CONSTANTS
-# =============================================================================
-
-# Padding & margins
-PADDING_SMALL = 4
-PADDING_MEDIUM = 8
-PADDING_LARGE = 12
-PADDING_XLARGE = 16
-
-MARGIN_SMALL = 4
-MARGIN_MEDIUM = 8
-MARGIN_LARGE = 12
-MARGIN_XLARGE = 16
-
-# Border radius
-BORDER_RADIUS_SMALL = 4
-BORDER_RADIUS_MEDIUM = 6
-BORDER_RADIUS_LARGE = 8
-
-# Font sizes
-FONT_SIZE_SMALL = 12
-FONT_SIZE_MEDIUM = 14
-FONT_SIZE_LARGE = 15
-FONT_SIZE_XLARGE = 18
-
-# Button sizes
-BUTTON_HEIGHT_SMALL = 24
-BUTTON_HEIGHT_MEDIUM = 32
-BUTTON_HEIGHT_LARGE = 40
+from src.constants.ui_constants import (
+    # Colors
+    PRIMARY_COLOR, PRIMARY_DARK, SECONDARY_COLOR,
+    BG_DARK, BG_MEDIUM, BG_LIGHT, BG_HOVER,
+    BORDER_DARK, BORDER_LIGHT, BORDER_FOCUS,
+    TEXT_PRIMARY, TEXT_SECONDARY, TEXT_DISABLED, TEXT_BRIGHT, TEXT_DARK,
+    SUCCESS_COLOR, WARNING_COLOR, ERROR_COLOR, INFO_COLOR,
+    STATUS_IMPLEMENTED_BG, STATUS_COMING_SOON_BG, STATUS_TEXT_COLOR,
+    GRADIENT_START, GRADIENT_END,
+    
+    # Sizing
+    PADDING_SMALL, PADDING_MEDIUM, PADDING_LARGE, PADDING_XLARGE,
+    MARGIN_SMALL, MARGIN_MEDIUM, MARGIN_LARGE, MARGIN_XLARGE,
+    BORDER_RADIUS_SMALL, BORDER_RADIUS_MEDIUM, BORDER_RADIUS_LARGE,
+    FONT_SIZE_SMALL, FONT_SIZE_MEDIUM, FONT_SIZE_LARGE, FONT_SIZE_XLARGE,
+    BUTTON_HEIGHT_SMALL, BUTTON_HEIGHT_MEDIUM, BUTTON_HEIGHT_LARGE
+)
 
 # =============================================================================
 # WIDGET STYLE FUNCTIONS
@@ -762,3 +706,82 @@ def apply_dark_theme(widget) -> None:
     """
     # Base application style
     widget.setStyleSheet(get_application_style()) 
+
+def get_background_style() -> str:
+    """Return the style for background appearance"""
+    return f"""
+        background-color: {BG_DARK.name()};
+        color: {TEXT_PRIMARY.name()};
+    """
+
+def get_app_title_style() -> str:
+    """Return the style for application title"""
+    return f"""
+        font-size: {FONT_SIZE_XLARGE}px;
+        font-weight: bold;
+        color: {PRIMARY_COLOR.name()};
+        background-color: transparent;
+        padding: {PADDING_MEDIUM}px;
+    """
+
+def get_scrollbar_style() -> str:
+    """Return the style for scrollbars"""
+    return f"""
+        QScrollBar:vertical {{
+            border: none;
+            background: {BG_MEDIUM.name()};
+            width: 14px;
+            margin: 15px 0 15px 0;
+            border-radius: 0px;
+        }}
+
+        QScrollBar::handle:vertical {{
+            background-color: {BORDER_DARK.name()};
+            min-height: 30px;
+            border-radius: 7px;
+        }}
+        QScrollBar::handle:vertical:hover {{
+            background-color: {PRIMARY_COLOR.name()};
+        }}
+        QScrollBar::handle:vertical:pressed {{
+            background-color: {PRIMARY_DARK.name()};
+        }}
+
+        QScrollBar::sub-line:vertical {{
+            border: none;
+            background-color: {BG_MEDIUM.name()};
+            height: 15px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            subcontrol-position: top;
+            subcontrol-origin: margin;
+        }}
+        QScrollBar::add-line:vertical {{
+            border: none;
+            background-color: {BG_MEDIUM.name()};
+            height: 15px;
+            border-bottom-left-radius: 7px;
+            border-bottom-right-radius: 7px;
+            subcontrol-position: bottom;
+            subcontrol-origin: margin;
+        }}
+        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {{
+            background: none;
+        }}
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+            background: none;
+        }}
+    """
+
+def create_status_bar_style() -> str:
+    """Return the style for status bar"""
+    return f"""
+        QStatusBar {{
+            background-color: {BG_MEDIUM.name()};
+            color: {TEXT_PRIMARY.name()};
+            border-top: 1px solid {BORDER_DARK.name()};
+        }}
+        QStatusBar::item {{
+            border: none;
+        }}
+    """ 
