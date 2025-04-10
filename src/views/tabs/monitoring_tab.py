@@ -26,6 +26,7 @@ from src.controllers.simulation_controller import SimulationController
 from src.controllers.ball_status_display_manager import BallStatusDisplayManager
 from src.controllers.image_display_manager import ImageDisplayManager
 from src.controllers.calibration_overlay_manager import CalibrationOverlayManager
+from src.controllers.ball_detection_controller import BallDetectionController
 from src.utils.logger import Logger
 from src.utils.settings_manager import SettingsManager
 from src.utils.ui_theme import (
@@ -106,6 +107,9 @@ class MonitoringTab(QWidget):
         
         # Ball status display manager (initialized after UI is created)
         self.ball_status_manager = None
+        
+        # Ball detection controller
+        self.ball_detection = BallDetectionController()
     
     class CameraViewLayout:
         """
@@ -224,6 +228,25 @@ class MonitoringTab(QWidget):
         self.player_controls = PlayerControls()
         left_camera_view.layout.addWidget(self.player_controls)
         
+        # Ball detection controls
+        detection_controls = QHBoxLayout()
+        detection_controls.setContentsMargins(5, 5, 5, 5)
+        detection_controls.setSpacing(10)
+        
+        # Ball detection toggle button
+        self.detection_button = QPushButton("Start Ball Detection")
+        self.detection_button.setStyleSheet(get_button_style())
+        self.detection_button.clicked.connect(self._toggle_ball_detection)
+        detection_controls.addWidget(self.detection_button)
+        
+        # Detection processing info label
+        self.detection_info_label = QLabel("Detection inactive")
+        self.detection_info_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.detection_info_label.setStyleSheet(get_label_style())
+        detection_controls.addWidget(self.detection_info_label)
+        
+        left_camera_view.layout.addLayout(detection_controls)
+        
         # Timeline slider (hidden)
         timeline_container = QWidget()
         timeline_container.setMaximumHeight(1)
@@ -268,6 +291,12 @@ class MonitoringTab(QWidget):
         self.ball_position_label.setAlignment(Qt.AlignCenter)
         self.ball_position_label.setStyleSheet(get_label_style())
         info_grid.addWidget(self.ball_position_label, 1, 0, 1, 2)
+        
+        # Detection confidence label
+        self.detection_confidence_label = QLabel("Confidence: 0.00")
+        self.detection_confidence_label.setAlignment(Qt.AlignCenter)
+        self.detection_confidence_label.setStyleSheet(get_label_style())
+        info_grid.addWidget(self.detection_confidence_label, 2, 0, 1, 2)
         
         right_camera_view.layout.addLayout(info_grid)
         
@@ -466,6 +495,81 @@ class MonitoringTab(QWidget):
         # Update FPS display with improved format
         self.left_fps_label.setText(f"{current_fps:.1f}/{target_fps} fps")
         self.right_fps_label.setText(f"{current_fps:.1f}/{target_fps} fps")
+    
+    def _toggle_ball_detection(self):
+        """Toggle ball detection on/off"""
+        # Call the ball detection controller's toggle method
+        detection_active = self.ball_detection.toggle_detection(self._on_ball_detection_result)
+        
+        # Update button text based on state
+        if detection_active:
+            self.detection_button.setText("Stop Ball Detection")
+            self.detection_info_label.setText("Detection active")
+        else:
+            self.detection_button.setText("Start Ball Detection")
+            self.detection_info_label.setText("Detection inactive")
+            
+        self.logger.debug(f"Ball detection {'activated' if detection_active else 'deactivated'}")
+    
+    def _on_ball_detection_result(self, detection_result, fps, process_time):
+        """
+        Handle ball detection results
+        
+        Args:
+            detection_result: Detection result dictionary
+            fps: Current detection FPS
+            process_time: Processing time in seconds
+        """
+        try:
+            # Update detection info label
+            self.detection_info_label.setText(f"Detection: {fps:.1f} fps ({process_time*1000:.1f}ms)")
+            
+            # Get left and right camera detections
+            left_detection = detection_result.get('left')
+            right_detection = detection_result.get('right')
+            
+            # Update image overlays
+            if left_detection:
+                self.image_display_manager.set_ball_detection_result('left', left_detection)
+            
+            if right_detection:
+                self.image_display_manager.set_ball_detection_result('right', right_detection)
+            
+            # Process 3D position if available
+            position_data = detection_result.get('position')
+            if position_data and position_data.get('has_position'):
+                # Extract 3D position
+                position = position_data.get('position')
+                confidence = position_data.get('confidence', 0.0)
+                
+                # Update position display
+                if position:
+                    x, y, z = position
+                    self.ball_position_label.setText(f"X: {x:.2f}, Y: {y:.2f}, Z: {z:.2f}")
+                    
+                    # Update 3D position overlay
+                    self.image_display_manager.set_3d_position(position)
+                    
+                    # Update position in app state
+                    self.app_state.set_ball_position(x, y, z)
+                
+                # Update confidence display
+                self.detection_confidence_label.setText(f"Confidence: {confidence:.2f}")
+                
+                # Update ball status based on confidence
+                if confidence > 0.7:
+                    self.ball_status_manager.set_status('detected')
+                elif confidence > 0.3:
+                    self.ball_status_manager.set_status('uncertain')
+                else:
+                    self.ball_status_manager.set_status('not_detected')
+            else:
+                # No valid position - update UI to reflect that
+                self.ball_status_manager.set_status('not_detected')
+                self.detection_confidence_label.setText(f"Confidence: 0.00")
+            
+        except Exception as e:
+            self.logger.error(f"Error handling ball detection result: {e}")
     
     def _load_initial_image(self):
         """Load and display the first frame if available"""

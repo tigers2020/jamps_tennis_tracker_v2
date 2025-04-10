@@ -6,13 +6,16 @@ for the Tennis Ball Tracker system.
 """
 
 from PySide6.QtCore import QObject, Slot, Signal, Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QPainter, QColor, QPen, QBrush
 from PySide6.QtWidgets import QLabel
+import cv2
+import numpy as np
 
 from src.controllers.image_manager import ImageManager
 from src.controllers.image_player_controller import ImagePlayerController
 from src.models.app_state import AppState
 from src.utils.logger import Logger
+from src.utils.tennis_ball_detector import draw_detection_overlay, draw_3d_position
 
 
 class ImageDisplayManager(QObject):
@@ -54,6 +57,11 @@ class ImageDisplayManager(QObject):
         
         # Dictionary to store current images
         self._images = {'left': None, 'right': None}
+        
+        # Detection overlay state
+        self._left_detection_result = None
+        self._right_detection_result = None
+        self._position_3d = None
         
         # Connect signals
         self._connect_signals()
@@ -121,6 +129,9 @@ class ImageDisplayManager(QObject):
             if right_pixmap and self._right_image_label:
                 self._update_image_display(self._right_image_label, right_pixmap)
                 self._right_original_pixmap = right_pixmap
+            
+            # Apply detection overlays if available
+            self._apply_detection_overlays()
             
             # Emit signal that images have been updated
             self.images_updated.emit(frame_number)
@@ -200,6 +211,9 @@ class ImageDisplayManager(QObject):
         # Resize right image
         if right_label:
             self._resize_image(right_label)
+            
+        # Reapply detection overlays after resize
+        self._apply_detection_overlays()
     
     def _resize_image(self, label):
         """
@@ -267,4 +281,143 @@ class ImageDisplayManager(QObject):
         # Update dictionary with latest pixmaps
         self._images['left'] = self._left_original_pixmap
         self._images['right'] = self._right_original_pixmap
-        return self._images 
+        return self._images
+        
+    def set_ball_detection_result(self, camera, detection_result):
+        """
+        Set the ball detection result for a camera
+        
+        Args:
+            camera: Camera name ('left' or 'right')
+            detection_result: Detection result dictionary from ball detection
+        """
+        if camera.lower() == 'left':
+            self._left_detection_result = detection_result
+        elif camera.lower() == 'right':
+            self._right_detection_result = detection_result
+        
+        # Apply overlays to update display
+        self._apply_detection_overlays()
+            
+    def set_3d_position(self, position_3d):
+        """
+        Set the 3D position data for display
+        
+        Args:
+            position_3d: (x, y, z) tuple with 3D position
+        """
+        self._position_3d = position_3d
+        
+        # Apply overlays to update display
+        self._apply_detection_overlays()
+        
+    def _apply_detection_overlays(self):
+        """Apply detection overlays to both camera images"""
+        # Process left camera overlay
+        if self._left_detection_result and self._left_original_pixmap and self._left_image_label:
+            try:
+                # Convert QPixmap to OpenCV image for processing
+                image_array = self._pixmap_to_cv2(self._left_original_pixmap)
+                if image_array is not None:
+                    # Draw detection overlay
+                    overlay_image = draw_detection_overlay(
+                        image_array, 
+                        self._left_detection_result, 
+                        color=(0, 255, 0)  # Green
+                    )
+                    
+                    # Draw 3D position if available
+                    if self._position_3d:
+                        overlay_image = draw_3d_position(
+                            overlay_image,
+                            self._position_3d,
+                            color=(0, 255, 0)  # Green
+                        )
+                    
+                    # Convert back to QPixmap and update label
+                    overlay_pixmap = self._cv2_to_pixmap(overlay_image)
+                    if overlay_pixmap and not overlay_pixmap.isNull():
+                        # Update with proper scaling
+                        self._update_image_display(self._left_image_label, overlay_pixmap)
+            except Exception as e:
+                self.logger.error(f"Error applying left camera detection overlay: {e}")
+        
+        # Process right camera overlay
+        if self._right_detection_result and self._right_original_pixmap and self._right_image_label:
+            try:
+                # Convert QPixmap to OpenCV image for processing
+                image_array = self._pixmap_to_cv2(self._right_original_pixmap)
+                if image_array is not None:
+                    # Draw detection overlay
+                    overlay_image = draw_detection_overlay(
+                        image_array, 
+                        self._right_detection_result, 
+                        color=(0, 255, 255)  # Yellow
+                    )
+                    
+                    # Convert back to QPixmap and update label
+                    overlay_pixmap = self._cv2_to_pixmap(overlay_image)
+                    if overlay_pixmap and not overlay_pixmap.isNull():
+                        # Update with proper scaling
+                        self._update_image_display(self._right_image_label, overlay_pixmap)
+            except Exception as e:
+                self.logger.error(f"Error applying right camera detection overlay: {e}")
+    
+    def _pixmap_to_cv2(self, pixmap):
+        """
+        Convert QPixmap to OpenCV image
+        
+        Args:
+            pixmap: QPixmap to convert
+            
+        Returns:
+            numpy.ndarray: OpenCV image in BGR format
+        """
+        if pixmap is None or pixmap.isNull():
+            return None
+            
+        # Convert QPixmap to QImage
+        image = pixmap.toImage()
+        
+        # Extract dimensions
+        width = image.width()
+        height = image.height()
+        
+        # Convert to OpenCV format
+        if image.format() == image.Format_RGB32 or image.format() == image.Format_ARGB32:
+            # Create numpy array from image data
+            ptr = image.constBits()
+            # Convert to numpy array (accounting for 4-channel ARGB)
+            arr = np.array(ptr).reshape(height, width, 4)
+            # Convert RGBA to BGR for OpenCV
+            return cv2.cvtColor(arr, cv2.COLOR_RGBA2BGR)
+        else:
+            # For other formats, convert to RGB32 first
+            rgb_image = image.convertToFormat(image.Format_RGB32)
+            ptr = rgb_image.constBits()
+            arr = np.array(ptr).reshape(height, width, 4)
+            return cv2.cvtColor(arr, cv2.COLOR_RGBA2BGR)
+    
+    def _cv2_to_pixmap(self, cv_img):
+        """
+        Convert OpenCV image to QPixmap
+        
+        Args:
+            cv_img: OpenCV image in BGR format
+            
+        Returns:
+            QPixmap: Converted pixmap
+        """
+        if cv_img is None:
+            return None
+            
+        # Convert BGR to RGB
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        
+        # Create QPixmap from numpy array
+        height, width, channel = rgb_image.shape
+        bytes_per_line = 3 * width
+        from PySide6.QtGui import QImage
+        q_img = QImage(rgb_image.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        
+        return QPixmap.fromImage(q_img) 
